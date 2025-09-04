@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>BOSS 出現倒數</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #222; color: #fff; text-align: center; }
+    table { margin: 20px auto; border-collapse: collapse; }
+    th, td { border: 1px solid #555; padding: 10px; }
+    th { background: #444; }
+  </style>
+</head>
+<body>
+  <h1>⚔️ BOSS 出現倒數</h1>
+  <table id="bossTable">
+    <thead>
+      <tr>
+        <th>地圖</th>
+        <th>分流</th>
+        <th>刷新時間</th>
+        <th>剩餘時間</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // 換成你的 Google Sheet CSV 連結（File → Share → Publish to web → CSV）
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/你的ID/export?format=csv";
+
+    async function loadData() {
+      const res = await fetch(sheetUrl);
+      const text = await res.text();
+      const rows = text.split("\n").map(r => r.split(","));
+      const tbody = document.querySelector("#bossTable tbody");
+      tbody.innerHTML = "";
+
+      rows.slice(1).forEach(r => {
+        if (!r[2]) return;
+        const map = r[0], channel = r[1], timeStr = r[2];
+        const bossTime = new Date(timeStr);
+        const now = new Date();
+        const diffMs = bossTime - now;
+        let countdown = "";
+        if (diffMs > 0) {
+          const min = Math.floor(diffMs / 60000);
+          const sec = Math.floor((diffMs % 60000) / 1000);
+          countdown = `${min}分 ${sec}秒`;
+        } else {
+          countdown = "已出現 / 已過";
+        }
+        tbody.innerHTML += `<tr><td>${map}</td><td>${channel}</td><td>${timeStr}</td><td>${countdown}</td></tr>`;
+      });
+    }
+
+    setInterval(loadData, 5000);
+    loadData();
+  </script>
+</body>
+</html>
